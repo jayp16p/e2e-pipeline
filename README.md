@@ -161,9 +161,43 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin 
 
 #Manage Docker as a non-root user
 sudo groupadd docker
-sudo usermod -aG docker $USER
+sudo usermod -aG docker jenkins # recall that we created a user called Jenkins when we started! or user $USER
 
 #Run the following command to activate the changes to groups:
 newgrp docker
 
+#Switch to jenkins user
+su - jenkins
+#run docker ps to verify you are able to run without root on jenkins user!
 ```
+
+
+### Connect to Remote SSH Agent
+- From the Jenkins UI (Controller) ```ssh jenkins@192.168.56.12```
+- Create private and public SSH keys. The following command creates the private key jenkinsAgent_rsa and the public key jenkinsAgent_rsa.pub.
+  It is recommended to store your keys under ~/.ssh/ so we move to that directory before creating the key pair.
+  ``` mkdir ~/.ssh; cd ~/.ssh/ && ssh-keygen -t rsa -m PEM -C "Jenkins agent key" -f "jenkinsAgent_rsa" ```
+- Add the public SSH key to the list of authorized keys on the agent machine
+  ```cat jenkinsAgent_rsa.pub >> ~/.ssh/authorized_keys```
+- Copy the private SSH key (~/.ssh/jenkinsAgent_rsa) from the agent machine to your OS clipboard
+  ```cat ~/.ssh/jenkinsAgent_rsa```
+  
+- Go to the jenkinsagent VM and SSH to Jenkins UI VM
+- Switch to Jenkins user ```su - jenkins``` and run ```cd /var/lib/jenkins/```
+- Now SSH to JenkinsAgent ```ssh jenkins@192.168.56.12``` - this will help in creating the SSH files in this dir and will help in connecting UI and agent
+
+- Go to JenkinsUI(192.168.56.11) -> Manage Jenkins -> Nodes&Clouds -> Configure the Built in Node-> Set Number of executors to 0
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/9d6e28cf-3422-4127-be52-846f7d0c5def)
+
+- Go back and add new node
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/805a3aef-5667-4d49-a59e-76ba7e4d099a)
+
+  Set as:
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/9c84042f-b447-4a5e-a87e-e9a9d45fe6e2)
+  ADD credential and set as
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/a41d27e9-f41e-48c4-ad85-3b38a2eb69b1)
+  USE THOSE CREDENTIALs
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/98abb867-89a5-4615-aff7-42a85c38e0a0)
+
+
+

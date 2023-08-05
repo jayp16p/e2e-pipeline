@@ -203,5 +203,8 @@ su - jenkins
 
   If everthing worked well, you should see the agent connected to the UI
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/fb11d55b-2da6-4faa-87f6-8cdad65abb69)
+  
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/dc7c9975-9170-429d-ae8b-c0f82e10f5bf)
 
+  
 

@@ -50,8 +50,72 @@ Output
    CGroup: /system.slice/jenkins.service
 
 ```
-- If everything worked, you should see it come up with <ip addr>:8080
+- If everything worked, you should see it come up with IP ADDRESS:8080
 
-- Next, we setup reverse proxy
+### Setup Reverse Proxy using NGINX
 
+```
+sudo apt update
+sudo apt upgrade
+
+sudo apt install nginx
+
+systemctl status nginx
+
+```
+
+#### In order for Nginx to serve this content, it’s necessary to create a server block with the correct directives.
+
+```
+sudo vi /etc/nginx/sites-available/jenkinsdev.jaycloud.live
+
+sudo vi /etc/nginx/sites-available/jenkinsagent.jaycloud.live
+```
+
+```
+#PASTE THIS for each host and change server_name as appropriate!
+upstream jenkins{
+    server 127.0.0.1:8080;
+}
+
+server{
+    listen      80;
+    server_name jenkinsdev.jaycloud.live;
+
+    access_log  /var/log/nginx/jenkins.access.log;
+    error_log   /var/log/nginx/jenkins.error.log;
+
+    proxy_buffers 16 64k;
+    proxy_buffer_size 128k;
+
+    location / {
+        proxy_pass  http://jenkins;
+        proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+        proxy_redirect off;
+
+        proxy_set_header    Host            $host;
+        proxy_set_header    X-Real-IP       $remote_addr;
+        proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto https;
+    }
+
+}
+```
+
+- Next, let’s enable the file by creating a link from it to the sites-enabled directory, which Nginx reads from during startup:
+```
+sudo ln -s /etc/nginx/sites-available/jenkinsdev.jaycloud.live /etc/nginx/sites-enabled/
+# AND
+sudo ln -s /etc/nginx/sites-available/jenkinsagent.jaycloud.live /etc/nginx/sites-enabled/
+```
+
+- Next, test to make sure that there are no syntax errors in any of your Nginx files:
+```
+sudo nginx -t
+```
+
+- Lastly, restart NGINX: ```sudo systemctl restart nginx```
+
+If all worked you should see:
+![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/6c445acb-ed73-4c1b-aa6e-6bde7eb5da5f)
 

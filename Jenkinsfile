@@ -18,6 +18,18 @@ pipeline{
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/jayp16p/e2e-pipeline'
             }
     }
+
+    stage("Build the application"){
+            steps{
+                sh "mvn clean package"
+            }
+    }
+
+    stage("Test Application"){
+            steps{
+                sh "mvn test"
+            }
+    }
     
 }
 }

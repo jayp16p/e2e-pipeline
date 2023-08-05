@@ -231,105 +231,152 @@ su - jenkins
 - If you find yourself running into issues with Vagrant as I did, I provisioned the VM's and I got stuck at SSH auth method
 - FIX: login through virtual box, run ```ip addr``` to check the interface and install ```sudo apt-get install net-tools```
 - RUN ```sudo ifconfig <interface> 192.168.x.x subnet 255.255.x.x``` - you should be able to access the host now and carry on.
+- OR increase the memory and CPU for the virtual machines(this mostly fixes it)
 
 #### Setup SonarQube
+- Make sure your infrastructure has atleast 2 GB RAM, SonarQube is memory intensive
+
+## Install Postgresql 15
 ```
 sudo apt update
 sudo apt upgrade
 
-#Need POSTGRESQL
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+
 wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
 
 sudo apt update
 sudo apt-get -y install postgresql postgresql-contrib
 sudo systemctl enable postgresql
 ```
-
-- Create Database for Sonarqube
+### Create Database for Sonarqube
 ```
 sudo passwd postgres
 su - postgres
 
-#Set password and grant privileges
 createuser sonar
 psql 
 ALTER USER sonar WITH ENCRYPTED password 'sonar';
 CREATE DATABASE sonarqube OWNER sonar;
 grant all privileges on DATABASE sonarqube to sonar;
 \q
+
 exit
 ```
-
-- Install Java(refer to above Adoptium instructions)
-
-- Linux Kernel Tuning
+## Install Java 17
 ```
-sudo vim /etc/security/limits.conf >> sonarqube   -   nofile   65536 sonarqube   -   nproc    4096
+sudo bash
 
-sudo vim /etc/sysctl.conf >> vm.max_map_count = 262144
+apt install -y wget apt-transport-https
+mkdir -p /etc/apt/keyrings
 
+wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc
+
+echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+
+apt update
+apt install temurin-17-jdk
+update-alternatives --config java
+/usr/bin/java --version
+
+exit 
+```
+## Increase Limits
+```
+sudo vim /etc/security/limits.conf
+```
+Paste the below values at the bottom of the file
+```
+sonarqube   -   nofile   65536
+sonarqube   -   nproc    4096
+```
+```
+sudo vim /etc/sysctl.conf
+```
+Paste the below values at the bottom of the file
+```
+vm.max_map_count = 262144
+```
+Reboot to set the new limits
+```
 sudo reboot
 ```
+## Install Sonarqube 
+```
+sudo wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.0.65466.zip
+sudo apt install unzip
+sudo unzip sonarqube-9.9.0.65466.zip -d /opt
+sudo mv /opt/sonarqube-9.9.0.65466 /opt/sonarqube
+sudo groupadd sonar
+sudo useradd -c "user to run SonarQube" -d /opt/sonarqube -g sonar sonar
+sudo chown sonar:sonar /opt/sonarqube -R
+```
+Update Sonarqube properties with DB credentials
+```
+sudo vim /opt/sonarqube/conf/sonar.properties
+```
+Find and replace the below values, you might need to add the sonar.jdbc.url
+```
+sonar.jdbc.username=sonar
+sonar.jdbc.password=sonar
+sonar.jdbc.url=jdbc:postgresql://localhost:5432/sonarqube
+```
+Create service for Sonarqube
+```
+sudo vim /etc/systemd/system/sonar.service
+```
+Paste the below into the file
+```
+[Unit]
+Description=SonarQube service
+After=syslog.target network.target
 
-- Download & Extract SonarQube
-  ```
-  sudo wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.0.65466.zip
-  sudo apt install unzip
-  sudo unzip sonarqube-9.9.0.65466.zip -d /opt
-  sudo mv /opt/sonarqube-9.9.0.65466 /opt/sonarqube
-  ```
-  
-- Create user and set permissions
-  ```
-  sudo groupadd sonar
-  sudo useradd -c "user to run SonarQube" -d /opt/sonarqube -g sonar sonar
-  sudo chown sonar:sonar /opt/sonarqube -R
-  ```
+[Service]
+Type=forking
 
-- Update Sonarqube properties with DB credentials
-  ```
-  sudo vim /opt/sonarqube/conf/sonar.properties
-  ###
-  PASTE THIS IN the file
-  sonar.jdbc.username=sonar
-  sonar.jdbc.password=sonar
-  sonar.jdbc.url=jdbc:postgresql://localhost:5432/sonarqube
-  ###
-  
-  sudo vim /etc/systemd/system/sonar.service
-  ###
-  PASTE THIS IN THE FILE
-  [Unit]
-  Description=SonarQube service
-  After=syslog.target network.target
-  
-  [Service]
-  Type=forking
-  
-  ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
-  ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
-  
-  User=sonar
-  Group=sonar
-  Restart=always
-  
-  LimitNOFILE=65536
-  LimitNPROC=4096
-  
-  [Install]
-  WantedBy=multi-user.target
-  ###
-  ```
+ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
+ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
 
-- Start Sonarqube and Enable service
-  ```
-  sudo systemctl start sonar
-  sudo systemctl enable sonar
-  sudo systemctl status sonar
-  ```
+User=sonar
+Group=sonar
+Restart=always
 
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
+```
+Start Sonarqube and Enable service
+```
+sudo systemctl start sonar
+sudo systemctl enable sonar
+sudo systemctl status sonar
+sudo tail -f /opt/sonarqube/logs/sonar.log
+```
+### Access the Sonarqube UI
+```
+http://<IP>:9000
+``` 
 - Access on http://<IP>:9000
+
+- Create a token in SonarQube & add it as a Secret text in Jenkins(Manage Jenkins>Credentials)
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/81b92b54-af0f-4a4e-bfce-d0e98440ee37)
+
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/3008d206-1fe3-444f-8660-ec68537aef2a)
+
+- Install plugins: SonarQube Scanner, Sonar Quality Gates, Quality Gates in Jenkins
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/d138e2af-1a7b-4561-b549-11652c71f93a)
+
+- Setup the SonarQube plugin in Jenkins, mainly to allow it to be accessed inside the pipeline and interact
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/6fbceb4d-d11a-44a3-9831-d621758e29c0)
+
+- Setup SonarQube Scanner
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/079c445f-941e-44a5-ac1d-2de9eaed67f7)
+
+- Make sure you note down the server name - it is needed in the Jenkinsfile in the 'SonarQube Analysis' stage
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/8f941c89-8a52-4e54-93cf-de092bc7464a)
+
 
 
 

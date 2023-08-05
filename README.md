@@ -194,10 +194,14 @@ su - jenkins
 
   Set as:
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/9c84042f-b447-4a5e-a87e-e9a9d45fe6e2)
-  ADD credential and set as
+  
+  Add credential and set as #this is where we use the copied private key from Jenkins agent
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/a41d27e9-f41e-48c4-ad85-3b38a2eb69b1)
+  
   USE THOSE CREDENTIALs
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/98abb867-89a5-4615-aff7-42a85c38e0a0)
 
+  If everthing worked well, you should see the agent connected to the UI
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/fb11d55b-2da6-4faa-87f6-8cdad65abb69)
 
 

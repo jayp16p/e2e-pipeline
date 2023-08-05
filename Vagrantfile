@@ -16,4 +16,11 @@ Vagrant.configure("2") do |config|
 	jenkinsagent.vm.network "private_network", ip: "192.168.56.12"
   end
 
+### SonarQube VM ###
+config.vm.define "sonarqube" do |sonarqube|
+  sonarqube.vm.box = "ubuntu/focal64"
+  sonarqube.vm.hostname = "sonarqube"
+  sonarqube.vm.network "private_network", ip: "192.168.56.13"
+end 
+
 end

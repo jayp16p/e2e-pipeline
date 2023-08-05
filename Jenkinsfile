@@ -9,11 +9,11 @@ pipeline{
     stages{
         stage("Cleanup Workspace"){
             steps{
-                cleanws
-            }
-            
+                cleanws()
+            } 
         }
-        stage("Get the code from github")
+
+        stage("Get the code from github"){
             steps{
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/jayp16p/e2e-pipeline'
             }

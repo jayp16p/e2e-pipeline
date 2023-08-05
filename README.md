@@ -203,8 +203,30 @@ su - jenkins
 
   If everthing worked well, you should see the agent connected to the UI
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/fb11d55b-2da6-4faa-87f6-8cdad65abb69)
-  
+
+
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/dc7c9975-9170-429d-ae8b-c0f82e10f5bf)
 
+#### Installing plugins
+- In JenkinsUI, install plugins ```Maven Integration, Pipeline Maven Integration and Eclipse Temurin Installer``` - these will also be reffered to by the JenkinsFile
+- Create a Personal Access Token on github and use it in Jenkins Credentials manager - we will referece 'github' in the Jenkins File and this will be used to fetch files from repo
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/29371f40-72ae-4003-8d92-1a4c217dbc43)
+
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/af229714-2619-4dab-95f4-90345513a007)
+
+- Create pipeline and Select Pipeline Script from SCM
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/89f273bb-cd78-4b9b-a236-db4c28f5a877)
+
+- Dry run to check if everything is working well, then proceed to build and test application
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/6b983816-c12f-4421-90fe-d690c0c95722)
   
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/f670debc-fcfa-4bab-ad29-65bcd3002c39)
+
+- After adding the build and test steps, all looks good! we are using Java application so we build it using maven
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/50b7fe61-7beb-4e58-bd4d-32c1713fdd7e)
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/90cb0472-5661-47a4-bdca-80021402fce8)
+
+
+
+
 

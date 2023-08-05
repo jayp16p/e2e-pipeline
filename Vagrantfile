@@ -21,6 +21,10 @@ config.vm.define "sonarqube" do |sonarqube|
   sonarqube.vm.box = "ubuntu/focal64"
   sonarqube.vm.hostname = "sonarqube"
   sonarqube.vm.network "private_network", ip: "192.168.56.13"
+  sonarqube.vm.provider "virtualbox" do |sq|
+     sq.memory = "3096"
+     sq.cpus = 4
+	 end
 end 
 
 end

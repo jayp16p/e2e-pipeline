@@ -227,6 +227,115 @@ su - jenkins
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/90cb0472-5661-47a4-bdca-80021402fce8)
 
 
+#### Useful note
+- If you find yourself running into issues with Vagrant as I did, I provisioned the VM's and I got stuck at SSH auth method
+- FIX: login through virtual box, run ```ip addr``` to check the interface and install ```sudo apt-get install net-tools```
+- RUN ```sudo ifconfig <interface> 192.168.x.x subnet 255.255.x.x``` - you should be able to access the host now and carry on.
+
+#### Setup SonarQube
+```
+sudo apt update
+sudo apt upgrade
+
+#Need POSTGRESQL
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
+
+sudo apt update
+sudo apt-get -y install postgresql postgresql-contrib
+sudo systemctl enable postgresql
+```
+
+- Create Database for Sonarqube
+```
+sudo passwd postgres
+su - postgres
+
+#Set password and grant privileges
+createuser sonar
+psql 
+ALTER USER sonar WITH ENCRYPTED password 'sonar';
+CREATE DATABASE sonarqube OWNER sonar;
+grant all privileges on DATABASE sonarqube to sonar;
+\q
+exit
+```
+
+- Install Java(refer to above Adoptium instructions)
+
+- Linux Kernel Tuning
+```
+sudo vim /etc/security/limits.conf >> sonarqube   -   nofile   65536 sonarqube   -   nproc    4096
+
+sudo vim /etc/sysctl.conf >> vm.max_map_count = 262144
+
+sudo reboot
+```
+
+- Download & Extract SonarQube
+  ```
+  sudo wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.0.65466.zip
+  sudo apt install unzip
+  sudo unzip sonarqube-9.9.0.65466.zip -d /opt
+  sudo mv /opt/sonarqube-9.9.0.65466 /opt/sonarqube
+  ```
+  
+- Create user and set permissions
+  ```
+  sudo groupadd sonar
+  sudo useradd -c "user to run SonarQube" -d /opt/sonarqube -g sonar sonar
+  sudo chown sonar:sonar /opt/sonarqube -R
+  ```
+
+- Update Sonarqube properties with DB credentials
+  ```
+  sudo vim /opt/sonarqube/conf/sonar.properties
+  ###
+  PASTE THIS IN the file
+  sonar.jdbc.username=sonar
+  sonar.jdbc.password=sonar
+  sonar.jdbc.url=jdbc:postgresql://localhost:5432/sonarqube
+  ###
+  
+  sudo vim /etc/systemd/system/sonar.service
+  ###
+  PASTE THIS IN THE FILE
+  [Unit]
+  Description=SonarQube service
+  After=syslog.target network.target
+  
+  [Service]
+  Type=forking
+  
+  ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
+  ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
+  
+  User=sonar
+  Group=sonar
+  Restart=always
+  
+  LimitNOFILE=65536
+  LimitNPROC=4096
+  
+  [Install]
+  WantedBy=multi-user.target
+  ###
+  ```
+
+- Start Sonarqube and Enable service
+  ```
+  sudo systemctl start sonar
+  sudo systemctl enable sonar
+  sudo systemctl status sonar
+  ```
+
+- Access on http://<IP>:9000
+
+
+
+
+
+
 
 
 

@@ -361,9 +361,9 @@ http://<IP>:9000
 - Access on http://<IP>:9000
 
 - Create a token in SonarQube & add it as a Secret text in Jenkins(Manage Jenkins>Credentials)
-  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/81b92b54-af0f-4a4e-bfce-d0e98440ee37)
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/5841bb02-0bf1-4190-a5a4-81906dca19df)
 
-  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/3008d206-1fe3-444f-8660-ec68537aef2a)
+![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/3008d206-1fe3-444f-8660-ec68537aef2a)
 
 - Install plugins: SonarQube Scanner, Sonar Quality Gates, Quality Gates in Jenkins
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/d138e2af-1a7b-4561-b549-11652c71f93a)
@@ -376,6 +376,23 @@ http://<IP>:9000
 
 - Make sure you note down the server name - it is needed in the Jenkinsfile in the 'SonarQube Analysis' stage
   ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/8f941c89-8a52-4e54-93cf-de092bc7464a)
+
+- If everything works you'll see:
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/69a90424-bb38-46f9-90de-80d5a950f067)
+  
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/0206e31e-4af6-45e1-8709-4585ac4eded2)
+
+- Set up webhook's for Quality gates, so that incase it doesn't pass we don't build - MAKE SURE in the URL you set up with <domain>/sonarqube-webhook/
+  ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/88b01b12-8f49-4dae-9148-4b1bcc1466b8)
+  
+###DOCKER
+
+- Install plugins in Jenkins: Docker, Docker Commons, Docker Pipeline, Docker API, docker-build-step, CloudBees Docker Build and Publish
+- Setup a Access Tokens from Dockerhub and this is used similar to how we used the Github access token, then go to Jenkins and add it under credentials. Kind is "Username with password"
+- ID in jenkins will be 'dockerhub', since this is what I declared in the JenkinsFile
+![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/47cc90a4-a8c1-4a2b-9930-2270403fc730)
+
+![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/77b77fac-ef6a-4891-8b25-4abe9ee56606)
 
 
 

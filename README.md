@@ -23,8 +23,9 @@ sudo -i
 sudo apt update
 sudo apt upgrade
 
-wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc
-echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo apt-key add -
+echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+
 
 apt update
 apt install temurin-17-jdk
@@ -119,3 +120,50 @@ sudo nginx -t
 If all worked you should see:
 ![image](https://github.com/jayp16p/e2e-pipeline/assets/106398902/6c445acb-ed73-4c1b-aa6e-6bde7eb5da5f)
 
+
+### Setup Jenkins Agent - Similar to the previous one + Install Docker
+```
+sudo apt update
+sudo apt upgrade
+
+sudo adduser jenkins
+
+#Grant Sudo Rights to Jenkins User
+sudo usermod -aG sudo jenkins
+
+wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo apt-key add -
+echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+
+
+apt update
+apt install temurin-17-jdk
+/usr/bin/java --version
+exit
+###############################################################################################################
+###DOCKER###
+sudo apt-get update
+
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+
+sudo mkdir -m 0755 -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+#Manage Docker as a non-root user
+sudo groupadd docker
+sudo usermod -aG docker $USER
+
+#Run the following command to activate the changes to groups:
+newgrp docker
+
+```
